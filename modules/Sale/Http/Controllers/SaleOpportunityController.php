@@ -41,6 +41,7 @@ use Modules\Sale\Http\Resources\SaleOpportunityResource;
 use Modules\Sale\Http\Resources\SaleOpportunityResource2;
 use Modules\Sale\Http\Requests\SaleOpportunityRequest;
 use Modules\Sale\Mail\SaleOpportunityEmail;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Class SaleOpportunityController
@@ -343,9 +344,21 @@ class SaleOpportunityController extends Controller
     public function download($external_id, $format = 'a4') {
         $sale_opportunity = SaleOpportunity::where('external_id', $external_id)->first();
 
-        if (!$sale_opportunity) throw new Exception("El código {$external_id} es inválido, no se encontro el pedido relacionado");
+        if (!$sale_opportunity){
+            return response()->json([
+                'success' => false,
+                'message' => "El codigo {$external_id} es invalido, no se encontro el pedido relacionado"
+            ], 404);
+        }
 
-        $this->reloadPDF($sale_opportunity, $format, $sale_opportunity->filename);
+        $filePath = "sale_opportunity/{$sale_opportunity->filename}.pdf";
+
+        if(!Storage::exists($filePath)){
+            return response()->json([
+                'success' => false,
+                'message' => "El Archivo PDF no existe o ha salido eliminado"
+            ], 404);
+        }
 
         return $this->downloadStorage($sale_opportunity->filename, 'sale_opportunity');
     }
