@@ -30,6 +30,12 @@
         public function handle($request, Closure $next)
         {
 
+            $user = $request -> user();
+
+            if (!$user){
+                return redirect()->route('login');
+            }
+
             $module = $request->user()->getModule();
             $path = explode('/', $request->path());
             $modules = $request->user()->getModules();
